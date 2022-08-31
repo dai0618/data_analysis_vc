@@ -1,15 +1,28 @@
 import pandas as pd
 import tabula
+import glob
 
-data = tabula.read_pdf("./data_folder/sample.pdf", lattice=True, pages = 'all')
+def modify_table(data):
+    # 変に同じセル内で改行を行わないように置換している。
+    df = data[0].replace("\r", "", regex=True)
+    print(df.columns[1])
 
-dfs = []
-# for df in dfs:
-#     print(df[0])
-for df in data:
-    # print(df.iat[1,0])
-    # print(df.iloc[1,0:3])
-    dfs.append(df)
+    # 列の名前を題〜期から変更
+    for i in range(0,6,1):
+        df.rename(columns={df.columns[i]:str(i)}, inplace=True)
 
-print(dfs[0])
-print(dfs[0].iloc[1,0:3])
+    return df
+
+def process_table():
+    new_df = pd.DataFrame(index=[], columns=[])
+    for pdf_data in glob.glob("./data_folder/*.pdf"):
+        table_data = tabula.read_pdf(pdf_data, lattice=True, pages = 'all')
+        df = modify_table(table_data)
+        new_df = pd.concat([df, new_df], axis=0)
+        
+    return new_df
+
+if __name__ == "__main__":
+    new_df = process_table()
+    # csvに書き出し
+    new_df.to_csv('sampla_data.csv')
