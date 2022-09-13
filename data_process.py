@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import tabula
 import glob
@@ -5,10 +6,10 @@ import glob
 def modify_table(data):
     # 変に同じセル内で改行を行わないように置換している。
     df = data[0].replace("\r", "", regex=True)
-    print(df.columns[1])
+    column = len(df.columns)
 
     # 列の名前を題〜期から変更
-    for i in range(0,6,1):
+    for i in range(0,column,1):
         df.rename(columns={df.columns[i]:str(i)}, inplace=True)
 
     return df
@@ -16,6 +17,7 @@ def modify_table(data):
 def process_table():
     new_df = pd.DataFrame(index=[], columns=[])
     for pdf_data in glob.glob("./data_folder/*.pdf"):
+        company_name_df = pd.DataFrame(os.path.splitext(os.path.basename(pdf_data)[0]))
         table_data = tabula.read_pdf(pdf_data, lattice=True, pages = 'all')
         df = modify_table(table_data)
         new_df = pd.concat([df, new_df], axis=0)
